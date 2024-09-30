@@ -6,6 +6,8 @@ use ApiPlatform\Doctrine\Common\State\PersistProcessor;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\DragonTreasure;
+use App\Entity\Notification;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
@@ -13,8 +15,9 @@ class DragonTreasureStateProcessor implements ProcessorInterface
 {
     public function __construct(
         #[Autowire(service: PersistProcessor::class)]
-        private readonly ProcessorInterface $persistProcessor,
-        private readonly Security           $security,
+        private readonly ProcessorInterface     $persistProcessor,
+        private readonly Security               $security,
+        private readonly EntityManagerInterface $em,
     )
     {
     }
@@ -33,5 +36,19 @@ class DragonTreasureStateProcessor implements ProcessorInterface
 
         // Data we set after the persistence
         $data->setIsOwnedByAuthenticatedUser($data->getOwner() === $this->security->getUser());
+        $this->notifyWhenPublishingTreasure($context['previous_data'], $data);
+    }
+
+    private function notifyWhenPublishingTreasure($previous_data, mixed $data): void
+    {
+        $previousData = $previous_data ?? null;
+        if ($data->getIsPublished() && (!$previousData || !$previousData->getIsPublished())) {
+            $this->em->persist(
+                (new Notification())
+                    ->setDragonTreasure($data)
+                    ->setMessage('Treasure has been published!'),
+            );
+            $this->em->flush();
+        }
     }
 }
