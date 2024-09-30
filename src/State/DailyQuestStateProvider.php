@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\ApiResource\DailyQuest;
+use App\ApiResource\QuestTreasure;
 use App\Enum\DailyQuestStatusEnum;
 use App\Repository\DragonTreasureRepository;
 
@@ -38,9 +39,14 @@ class DailyQuestStateProvider implements ProviderInterface
             $quest->difficultyLevel = $i % 10;
             $quest->status = $i % 2 === 0 ? DailyQuestStatusEnum::ACTIVE : DailyQuestStatusEnum::COMPLETED;
             $quest->lastUpdated = new \DateTimeImmutable(sprintf('- %d days', random_int(1, 100)));
-            $randomTreasuresKeys = array_rand($treasures, random_int(1, 3));
-            $randomTreasures = array_map(static fn($key) => $treasures[$key], (array) $randomTreasuresKeys);
-            $quest->treasures = $randomTreasures;
+
+            // Assign a random treasure
+            $randomTreasure = $treasures[array_rand($treasures)];
+            $quest->treasure = new QuestTreasure(
+                $randomTreasure->getName(),
+                $randomTreasure->getValue(),
+                $randomTreasure->getCoolFactor(),
+            );
 
             $quests[$quest->getDayString()] = $quest;
         }

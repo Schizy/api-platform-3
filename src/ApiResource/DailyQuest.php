@@ -39,10 +39,8 @@ class DailyQuest
 
     public DateTimeInterface $lastUpdated;
 
-    /**
-     * @var DragonTreasure[]
-     */
-    public array $treasures;
+    #[ApiProperty(genId: false)]
+    public QuestTreasure $treasure;
 
     public function __construct(\DateTimeInterface $day)
     {
