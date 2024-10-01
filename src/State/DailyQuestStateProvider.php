@@ -4,6 +4,8 @@ namespace App\State;
 
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\State\Pagination\Pagination;
+use ApiPlatform\State\Pagination\TraversablePaginator;
 use ApiPlatform\State\ProviderInterface;
 use App\ApiResource\DailyQuest;
 use App\ApiResource\QuestTreasure;
@@ -12,7 +14,10 @@ use App\Repository\DragonTreasureRepository;
 
 class DailyQuestStateProvider implements ProviderInterface
 {
-    public function __construct(private readonly DragonTreasureRepository $dragonTreasureRepository)
+    public function __construct(
+        private readonly DragonTreasureRepository $dragonTreasureRepository,
+        private readonly Pagination               $pagination,
+    )
     {
     }
 
@@ -21,18 +26,28 @@ class DailyQuestStateProvider implements ProviderInterface
         $quests = $this->createQuests();
 
         if ($operation instanceof CollectionOperationInterface) {
-            return $quests;
+            $currentPage = $this->pagination->getPage($context);
+            $itemsPerPage = $this->pagination->getLimit($operation, $context);
+            $offset = $this->pagination->getOffset($operation, $context);
+            $totalItems = count($quests);
+            $quests = $this->createQuests($offset, $itemsPerPage, $totalItems);
+            return new TraversablePaginator(
+                new \ArrayIterator($quests),
+                $currentPage,
+                $itemsPerPage,
+                $totalItems,
+            );
         }
 
         return $quests[$uriVariables['dayString']] ?? null;
     }
 
-    private function createQuests(): array
+    private function createQuests(int $offset = 0, int $limit = 50, int $totalQuests = 50): array
     {
         $treasures = $this->dragonTreasureRepository->findBy([], limit: 10);
 
         $quests = [];
-        for ($i = 0; $i < 50; $i++) {
+        for ($i = $offset; $i < ($offset + $limit) && $i < $totalQuests; $i++) {
             $quest = new DailyQuest(new \DateTimeImmutable(sprintf('- %d days', $i)));
             $quest->questName = sprintf('Quest %d', $i);
             $quest->description = sprintf('Description %d', $i);
