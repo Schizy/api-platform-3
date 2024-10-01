@@ -50,7 +50,7 @@ class EntityToDtoStateProvider implements ProviderInterface
         $dto->username = $entity->getUsername();
         $dto->dragonTreasures = $entity->getPublishedDragonTreasures()->toArray();
 
-        $dto->flameThrowingDistance = rand(1, 10);
+        $dto->flameThrowingDistance = random_int(1, 10);
 
         return $dto;
     }
