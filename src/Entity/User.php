@@ -2,16 +2,6 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiFilter;
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Delete;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Link;
-use ApiPlatform\Metadata\Patch;
-use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
-use ApiPlatform\Serializer\Filter\PropertyFilter;
 use App\Repository\UserRepository;
 use App\Validator\TreasuresAllowedOwnerChange;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -19,52 +9,10 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-#[ApiResource(
-    // Now add `operations` set to the 6 normal operations
-    operations: [
-        new Get(),
-        new GetCollection(),
-        new Post(
-            security: 'is_granted("PUBLIC_ACCESS")',
-            validationContext: ['groups' => ['Default', 'postValidation']],
-        ),
-        new Put(
-            security: 'is_granted("ROLE_USER_EDIT")'
-        ),
-        new Patch(
-            security: 'is_granted("ROLE_USER_EDIT")'
-        ),
-        new Delete(),
-    ],
-    normalizationContext: ['groups' => ['user:read']],
-    denormalizationContext: ['groups' => ['user:write']],
-    security: 'is_granted("ROLE_USER")',
-    extraProperties: [
-        'standard_put' => true,
-    ],
-)]
-#[ApiResource(
-    uriTemplate: '/treasures/{treasure_id}/owner.{_format}',
-    operations: [new Get()],
-    uriVariables: [
-        'treasure_id' => new Link(
-            fromProperty: 'owner',
-            fromClass: DragonTreasure::class,
-        ),
-    ],
-    normalizationContext: ['groups' => ['user:read']],
-    security: 'is_granted("ROLE_USER")',
-    extraProperties: [
-        'standard_put' => true,
-    ],
-)]
-#[ApiFilter(PropertyFilter::class)]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
 #[UniqueEntity(fields: ['username'], message: 'It looks like another dragon took your username. ROAR!')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -75,7 +23,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
-    #[Groups(['user:read', 'user:write'])]
     #[Assert\NotBlank]
     #[Assert\Email]
     private ?string $email = null;
@@ -92,18 +39,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[Groups(['user:write'])]
-    #[SerializedName('password')]
     #[Assert\NotBlank(groups: ['postValidation'])]
     private ?string $plainPassword = null;
 
     #[ORM\Column(length: 255, unique: true)]
-    #[Groups(['user:read', 'user:write', 'treasure:item:get', 'treasure:write'])]
     #[Assert\NotBlank]
     private ?string $username = null;
 
     #[ORM\OneToMany(mappedBy: 'owner', targetEntity: DragonTreasure::class, cascade: ['persist'], orphanRemoval: true)]
-    #[Groups(['user:write'])]
     #[Assert\Valid]
     #[TreasuresAllowedOwnerChange]
     private Collection $dragonTreasures;
@@ -163,6 +106,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return array_unique($roles);
     }
 
+    /**
+     * @see UserInterface
+     */
+    public function eraseCredentials(): void
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
+        $this->plainPassword = null;
+    }
+
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
@@ -185,15 +137,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     */
-    public function eraseCredentials(): void
-    {
-        // If you store any temporary, sensitive data on the user, clear it here
-        $this->plainPassword = null;
-    }
-
     public function getUsername(): ?string
     {
         return $this->username;
@@ -214,8 +157,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->dragonTreasures;
     }
 
-    #[Groups(['user:read'])]
-    #[SerializedName('dragonTreasures')]
     public function getPublishedDragonTreasures(): Collection
     {
         return $this->dragonTreasures->filter(static function (DragonTreasure $treasure) {
