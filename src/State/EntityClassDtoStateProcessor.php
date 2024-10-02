@@ -7,10 +7,7 @@ use ApiPlatform\Doctrine\Common\State\RemoveProcessor;
 use ApiPlatform\Metadata\DeleteOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Entity\User;
-use App\Repository\UserRepository;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfonycasts\MicroMapper\MicroMapperInterface;
 
 class EntityClassDtoStateProcessor implements ProcessorInterface
@@ -25,7 +22,10 @@ class EntityClassDtoStateProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
-        $entity = $this->mapDtoToEntity($data);
+        $dto = $data;
+        $entityClass = $operation->getStateOptions()->getEntityClass();
+
+        $entity = $this->mapDtoToEntity($dto, $entityClass);
 
         if ($operation instanceof DeleteOperationInterface) {
             $this->removeProcessor->process($entity, $operation, $uriVariables, $context);
@@ -39,8 +39,8 @@ class EntityClassDtoStateProcessor implements ProcessorInterface
         return $data;
     }
 
-    private function mapDtoToEntity(object $dto): object
+    private function mapDtoToEntity(object $dto, string $entityClass): object
     {
-        return $this->microMapper->map($dto, User::class);
+        return $this->microMapper->map($dto, $entityClass);
     }
 }
