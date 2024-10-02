@@ -30,6 +30,11 @@ class UserApi
     public ?string $username = null;
 
     /**
+     * Contains the plain password only
+     */
+    public ?string $password = null;
+
+    /**
      * @var array<int, DragonTreasure>
      */
     public array $dragonTreasures = [];
