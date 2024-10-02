@@ -16,7 +16,6 @@ use App\Entity\DragonTreasure;
 use App\Entity\User;
 use App\State\EntityClassDtoStateProcessor;
 use App\State\EntityToDtoStateProvider;
-use Symfony\Component\Serializer\Annotation\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ApiResource(
@@ -42,10 +41,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 ])]
 class UserApi
 {
-    /**
-     * The #[Ignore] attribute will ignore the field entirely (not writeable nor readable)
-     */
-    #[Ignore]
+    #[ApiProperty(readable: false, writable: false)]
     public ?int $id = null;
 
     #[Assert\NotBlank]
