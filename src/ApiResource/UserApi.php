@@ -5,6 +5,7 @@ namespace App\ApiResource;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Doctrine\Orm\State\Options;
 use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\DragonTreasure;
 use App\Entity\User;
@@ -23,6 +24,7 @@ use App\State\EntityToDtoStateProvider;
 ])]
 class UserApi
 {
+    #[ApiProperty(readable: false, identifier: true)]
     public ?int $id = null;
 
     public ?string $email = null;
@@ -30,8 +32,10 @@ class UserApi
     public ?string $username = null;
 
     /**
-     * Contains the plain password only
+     * The plaintext password when being set or changed
+     * The api property makes it only writeable
      */
+    #[ApiProperty(readable: false)]
     public ?string $password = null;
 
     /**
