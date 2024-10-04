@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Entity\DragonTreasure;
 use App\State\EntityClassDtoStateProcessor;
 use App\State\EntityToDtoStateProvider;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ApiResource(
     shortName: 'Treasure',
@@ -21,13 +22,19 @@ class DragonTreasureApi
     #[ApiProperty(readable: false, writable: false)]
     public ?int $id = null;
 
+    #[Assert\NotBlank]
     public ?string $name = null;
 
+    #[Assert\NotBlank]
     public ?string $description = null;
 
+    #[Assert\GreaterThanOrEqual(0)]
     public int $value = 0;
 
+    #[Assert\GreaterThanOrEqual(0)]
+    #[Assert\LessThanOrEqual(10)]
     public int $coolFactor = 0;
+
 
     public ?UserApi $owner = null;
 
@@ -37,7 +44,7 @@ class DragonTreasureApi
 
     public ?bool $isMine = null;
 
-    public function __construct(?int $id)
+    public function __construct(?int $id = null)
     {
         $this->id = $id;
     }
