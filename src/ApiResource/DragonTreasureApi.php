@@ -11,7 +11,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\DragonTreasure;
-use App\State\EntityClassDtoStateProcessor;
+use App\State\DragonTreasureStateProcessor;
 use App\State\EntityToDtoStateProvider;
 use App\Validator\IsValidOwner;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -33,7 +33,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     ],
     paginationItemsPerPage: 10,
     provider: EntityToDtoStateProvider::class,
-    processor: EntityClassDtoStateProcessor::class,
+    processor: DragonTreasureStateProcessor::class,
     stateOptions: new Options(entityClass: DragonTreasure::class),
 )]
 class DragonTreasureApi
@@ -63,7 +63,7 @@ class DragonTreasureApi
 
     public ?bool $isMine = null;
 
-    #[ApiProperty(security: 'is_granted("EDIT", object)')] //We only show the property for owner & admins
+    #[ApiProperty(security: 'object === null or is_granted("EDIT", object)')] //We only show the property for owner & admins
     public bool $isPublished = false;
 
     public function __construct(?int $id = null)

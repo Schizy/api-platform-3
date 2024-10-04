@@ -8,7 +8,6 @@ use App\Factory\DragonTreasureFactory;
 use App\Factory\NotificationFactory;
 use App\Factory\UserFactory;
 use Zenstruck\Browser\HttpOptions;
-use Zenstruck\Browser\Json;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
@@ -121,7 +120,7 @@ class DragonTreasureResourceTest extends ApiTestCase
                 'json' => [
                     'value' => 12345,
                 ],
-                'headers' => ['Content-Type' => 'application/merge-patch+json']
+                'headers' => ['Content-Type' => 'application/merge-patch+json'],
             ])
             ->assertStatus(200)
             ->assertJsonMatches('value', 12345);
@@ -135,7 +134,7 @@ class DragonTreasureResourceTest extends ApiTestCase
                     // be tricky and try to change the owner
                     'owner' => '/api/users/' . $user2->getId(),
                 ],
-                'headers' => ['Content-Type' => 'application/merge-patch+json']
+                'headers' => ['Content-Type' => 'application/merge-patch+json'],
             ])
             ->assertStatus(403);
 
@@ -146,7 +145,7 @@ class DragonTreasureResourceTest extends ApiTestCase
                     // change the owner to someone else
                     'owner' => '/api/users/' . $user2->getId(),
                 ],
-                'headers' => ['Content-Type' => 'application/merge-patch+json']
+                'headers' => ['Content-Type' => 'application/merge-patch+json'],
             ])
             ->assertStatus(422);
     }
@@ -165,7 +164,7 @@ class DragonTreasureResourceTest extends ApiTestCase
                 'json' => [
                     'value' => 12345,
                 ],
-                'headers' => ['Content-Type' => 'application/merge-patch+json']
+                'headers' => ['Content-Type' => 'application/merge-patch+json'],
             ])
             ->assertStatus(200)
             ->assertJsonMatches('value', 12345);
@@ -184,7 +183,7 @@ class DragonTreasureResourceTest extends ApiTestCase
                 'json' => [
                     'value' => 12345,
                 ],
-                'headers' => ['Content-Type' => 'application/merge-patch+json']
+                'headers' => ['Content-Type' => 'application/merge-patch+json'],
             ])
             ->assertStatus(200)
             ->assertJsonMatches('value', 12345)
@@ -205,7 +204,7 @@ class DragonTreasureResourceTest extends ApiTestCase
                 'json' => [
                     'value' => 12345,
                 ],
-                'headers' => ['Content-Type' => 'application/merge-patch+json']
+                'headers' => ['Content-Type' => 'application/merge-patch+json'],
             ])
             ->assertStatus(200)
             ->assertJsonMatches('value', 12345)
@@ -215,18 +214,15 @@ class DragonTreasureResourceTest extends ApiTestCase
 
     public function testPublishTreasure(): void
     {
-        $user = UserFactory::createOne();
-        $treasure = DragonTreasureFactory::createOne([
-            'owner' => $user,
-            'isPublished' => false,
-        ]);
+        $treasure = DragonTreasureFactory::createOne(['isPublished' => false]);
+
         $this->browser()
-            ->actingAs($user)
+            ->actingAs($treasure->getOwner())
             ->patch('/api/treasures/' . $treasure->getId(), [
                 'json' => [
                     'isPublished' => true,
                 ],
-                'headers' => ['Content-Type' => 'application/merge-patch+json']
+                'headers' => ['Content-Type' => 'application/merge-patch+json'],
             ])
             ->assertStatus(200)
             ->assertJsonMatches('isPublished', true);
