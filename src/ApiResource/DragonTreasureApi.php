@@ -63,6 +63,9 @@ class DragonTreasureApi
 
     public ?bool $isMine = null;
 
+    #[ApiProperty(security: 'is_granted("EDIT", object)')] //We only show the property for owner & admins
+    public bool $isPublished = false;
+
     public function __construct(?int $id = null)
     {
         $this->id = $id;
