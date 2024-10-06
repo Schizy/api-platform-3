@@ -90,10 +90,11 @@ class UserResourceTest extends ApiTestCase
             ->assertStatus(200)
             ->get('/api/users/' . $user->getId())
             ->assertJsonMatches('length("dragonTreasures")', 2)
-            ->assertJsonMatches('dragonTreasures[0]', '/api/dragonTreasures/' . $dragonTreasure1->getId())
+            ->assertJsonMatches('dragonTreasures[0]', '/api/treasures/' . $dragonTreasure1->getId())
 
-            //Fails because we can't write yet
-            ->assertJsonMatches('dragonTreasures[1]', '/api/dragonTreasures/' . $dragonTreasure3->getId());
+            //Thanks to the PropertyAccessor that removed the 2nd treasure and set the 3rd automatically we're good here!
+            // The 2nd one is even deleted from DB entirely because of the orphanRemoval: true
+            ->assertJsonMatches('dragonTreasures[1]', '/api/treasures/' . $dragonTreasure3->getId());
     }
 
     public function testUnpublishedTreasuresNotReturned(): void

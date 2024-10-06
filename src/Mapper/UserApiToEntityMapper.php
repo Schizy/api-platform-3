@@ -3,11 +3,14 @@
 namespace App\Mapper;
 
 use App\ApiResource\UserApi;
+use App\Entity\DragonTreasure;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfonycasts\MicroMapper\AsMapper;
 use Symfonycasts\MicroMapper\MapperInterface;
+use Symfonycasts\MicroMapper\MicroMapperInterface;
 
 #[AsMapper(from: UserApi::class, to: User::class)]
 class UserApiToEntityMapper implements MapperInterface
@@ -15,6 +18,8 @@ class UserApiToEntityMapper implements MapperInterface
     public function __construct(
         private readonly UserRepository              $userRepository,
         private readonly UserPasswordHasherInterface $userPasswordHasher,
+        private readonly MicroMapperInterface        $microMapper,
+        private readonly PropertyAccessorInterface   $propertyAccessor,
     )
     {
     }
@@ -43,6 +48,16 @@ class UserApiToEntityMapper implements MapperInterface
         }
 
         // TODO dragonTreasures if we change them to writeable
+        $dragonTreasureEntities = [];
+        foreach ($dto->dragonTreasures as $dragonTreasureApi) {
+            $dragonTreasureEntities[] = $this->microMapper->map($dragonTreasureApi, DragonTreasure::class, [
+                MicroMapperInterface::MAX_DEPTH => 0,
+            ]);
+        }
+
+        //The User doesn't have a setter for the DragonTreasures so we have to call addDragonTreasure (that set the owner) or removeDragonTreasure
+        //We have to call the right one on each case but that's too boring so we let the propertyAccessor do it for us =)
+        $this->propertyAccessor->setValue($entity, 'dragonTreasures', $dragonTreasureEntities);
 
         return $entity;
     }
