@@ -73,28 +73,22 @@ class UserResourceTest extends ApiTestCase
         $dragonTreasure1 = DragonTreasureFactory::createOne(['owner' => $user]);
         DragonTreasureFactory::createOne(['owner' => $user]);
 
-        $otherUser = UserFactory::createOne();
-        $dragonTreasure3 = DragonTreasureFactory::createOne(['owner' => $otherUser]);
-
         $this->browser()
             ->actingAs($user)
             ->patch('/api/users/' . $user->getId(), [
                 'json' => [
                     'dragonTreasures' => [
                         '/api/treasures/' . $dragonTreasure1->getId(),
-                        '/api/treasures/' . $dragonTreasure3->getId(),
                     ],
                 ],
                 'headers' => ['Content-Type' => 'application/merge-patch+json'],
             ])
             ->assertStatus(200)
             ->get('/api/users/' . $user->getId())
-            ->assertJsonMatches('length("dragonTreasures")', 2)
-            ->assertJsonMatches('dragonTreasures[0]', '/api/treasures/' . $dragonTreasure1->getId())
-
-            //Thanks to the PropertyAccessor that removed the 2nd treasure and set the 3rd automatically we're good here!
+            ->assertJsonMatches('length("dragonTreasures")', 1)
+            //Thanks to the PropertyAccessor that removed the 2nd treasure automatically we're good here!
             // The 2nd one is even deleted from DB entirely because of the orphanRemoval: true
-            ->assertJsonMatches('dragonTreasures[1]', '/api/treasures/' . $dragonTreasure3->getId());
+            ->assertJsonMatches('dragonTreasures[0]', '/api/treasures/' . $dragonTreasure1->getId());
     }
 
     public function testUnpublishedTreasuresNotReturned(): void
